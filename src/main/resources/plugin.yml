@@ -1,0 +1,10 @@
+name: NTCombat
+main: com.makotomiyamoto.combat.CombatSystem
+version: '1.0.0'
+api-version: '1.14'
+commands:
+  ntc:
+    description: NTCombat command prompt.
+    usage: /ntc [<args...>]
+    permission: ntc.admin
+    permission-message: You do not have permission to use this command.
