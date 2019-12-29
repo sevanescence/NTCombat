@@ -8,12 +8,16 @@ import com.makotomiyamoto.combat.data.CombatAttribute;
 import com.makotomiyamoto.combat.roll.Roll;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import java.io.*;
 import java.util.HashMap;
+import java.util.List;
 
 public class CombatEntity {
-    private double
+    private Integer[]
             damage,
             rangedDamage;
     private int armor;
@@ -25,10 +29,21 @@ public class CombatEntity {
             dodge,
             penetration;
     private HashMap<CombatAttribute, Integer> attributes;
-    public CombatEntity() { }
-    public CombatEntity(FileConfiguration mob) {
-        this.damage = mob.getDouble("damage");
-        this.rangedDamage = mob.getDouble("rangedDamage");
+    public CombatEntity() {
+        damage = new Integer[2];
+        rangedDamage = new Integer[2];
+        armor = 0;
+        critical = 0;
+        criticalDamage = 0;
+        block = 0;
+        parry = 0;
+        dodge = 0;
+        penetration = 0;
+        attributes = new HashMap<>();
+    }
+    public CombatEntity(FileConfiguration mob) throws IllegalArgumentException {
+        this.damage = mob.getIntegerList("damage").toArray(new Integer[0]);
+        this.rangedDamage = mob.getIntegerList("rangedDamage").toArray(new Integer[0]);
         this.armor = mob.getInt("armor");
         this.critical = mob.getDouble("critical");
         this.criticalDamage = mob.getDouble("criticalDamage");
@@ -36,7 +51,7 @@ public class CombatEntity {
         this.parry = mob.getDouble("parry");
         this.dodge = mob.getDouble("dodge");
         this.penetration = mob.getDouble("penetration");
-        this.attributes = new HashMap<CombatAttribute, Integer>();
+        this.attributes = new HashMap<>();
         ConfigurationSection attributes = mob.getConfigurationSection("attributes");
         if (attributes == null) {
             this.attributes.put(CombatAttribute.STRENGTH, 0);
@@ -48,14 +63,105 @@ public class CombatEntity {
             return;
         }
         for (String attribute : attributes.getKeys(false)) {
-            this.attributes.put(CombatAttribute.valueOf(attribute), attributes.getInt(attribute));
+            this.attributes.put(CombatAttribute.valueOf(attribute.toUpperCase()), attributes.getInt(attribute));
         }
     }
-    public static CombatEntity parseFromJson(CombatSystem system, String name) {
+    // new player constructor
+    public CombatEntity(CombatSystem system, String uuid, boolean saveNow) {
+        attributes = new HashMap<>();
+        FileConfiguration config = system.getConfig();
+        ConfigurationSection defaults = config.getConfigurationSection("player-defaults");
+        assert defaults != null;
+        this.damage = defaults.getIntegerList("damage").toArray(new Integer[0]);
+        this.rangedDamage = defaults.getIntegerList("rangedDamage").toArray(new Integer[0]);
+        this.armor = defaults.getInt("armor");
+        this.critical = defaults.getDouble("critical");
+        this.criticalDamage = defaults.getDouble("criticalDamage");
+        this.block = defaults.getDouble("block");
+        this.parry = defaults.getDouble("parry");
+        this.dodge = defaults.getDouble("dodge");
+        this.penetration = defaults.getDouble("penetration");
+        this.attributes.put(CombatAttribute.STRENGTH, defaults.getInt("attributes.strength"));
+        this.attributes.put(CombatAttribute.VITALITY, defaults.getInt("attributes.vitality"));
+        this.attributes.put(CombatAttribute.AGILITY, defaults.getInt("attributes.agility"));
+        this.attributes.put(CombatAttribute.TENACITY, defaults.getInt("attributes.tenacity"));
+        this.attributes.put(CombatAttribute.INTELLECT, defaults.getInt("attributes.intellect"));
+        this.attributes.put(CombatAttribute.SPIRIT, defaults.getInt("attributes.spirit"));
+        if (saveNow) {
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            String json = gson.toJson(this);
+            File file = new File(system.getDataFolder().getPath() + File.separator
+                    + "player_data" + File.separator + uuid + ".json");
+            try {
+                BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+                writer.write(json);
+                writer.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
+
+    public static CombatEntity getPlayer(CombatSystem system, Player player) {
+        Gson gson = new Gson();
+        String s = File.separator;
+        String path = system.getDataFolder() + s + "player_data" + s + player.getUniqueId().toString();
+        File file = new File(path);
+        try {
+            CombatEntity combatPlayer = gson.fromJson(new JsonReader(new FileReader(file)), CombatEntity.class);
+            ItemStack[] armor = player.getInventory().getArmorContents();
+            ItemStack mainHand = player.getInventory().getItemInMainHand();
+            ItemStack offHand = player.getInventory().getItemInOffHand();
+            return null; // TODO definitely not this lol
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return new CombatEntity(system, player.getUniqueId().toString(), true);
+        }
+    }
+    public void addFromItemStack(ItemStack itemStack) {
+        ItemMeta meta = itemStack.getItemMeta();
+        if (meta == null) {
+            return;
+        }
+        List<String> lore = meta.getLore();
+        if (lore == null || lore.size() < 6) {
+            return;
+        }
+        String mainLine = lore.get(3);
+        if (mainLine.contains("Armor")) {
+            armor += Integer.parseInt(mainLine.replaceAll("[^0-9]", ""));
+        } else {
+            String[] range = mainLine.replaceAll("§r", "")
+                    .replaceAll("[^0-9-]", "").split("-");
+            damage[0] += Integer.parseInt(range[0]);
+            damage[1] += Integer.parseInt(range[1]);
+        }
+        // TODO add attributes here (DO NOT CHANGE STATS, THAT IS DONE IN THEIR PUBLIC FETCHERS)
+    }
+
+
+
+    public void savePlayer(CombatSystem system, String uuid) {
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        String s = File.separator;
+        String path = system.getDataFolder().getPath() + s + "player_data"
+                + s + uuid + ".json";
+        String json = gson.toJson(this);
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(new File(path)));
+            writer.write(json);
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public static CombatEntity parseFromJson(CombatSystem system, String path) {
         Gson gson = new Gson();
         try {
             return gson.fromJson(new JsonReader(new FileReader(new File(system.getDataFolder().getPath()
-                    + File.separator + "mob_data" + File.separator + name))), CombatEntity.class);
+                    + File.separator + path))), CombatEntity.class);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             return new CombatEntity();
@@ -65,7 +171,7 @@ public class CombatEntity {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         String json = gson.toJson(this);
         File file = new File(system.getDataFolder().getPath() + File.separator
-                + "mob_data" + File.separator + name);
+                + "mob_data" + File.separator + name + ".json");
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter(file));
             writer.write(json);
@@ -76,15 +182,15 @@ public class CombatEntity {
     }
     public double getDamageRoll() {
         Integer[] range = new Integer[] {
-                (int) damage + attributes.get(CombatAttribute.STRENGTH),
-                (int)(damage-(int) damage) + attributes.get(CombatAttribute.STRENGTH)
+                damage[0] + attributes.get(CombatAttribute.STRENGTH),
+                damage[1] + attributes.get(CombatAttribute.STRENGTH)
         };
         return Roll.damageRoll(range);
     }
     public double getRangedDamageRoll() {
         Integer[] range = new Integer[] {
-                (int) rangedDamage + attributes.get(CombatAttribute.AGILITY),
-                (int)(rangedDamage-(int) rangedDamage) + attributes.get(CombatAttribute.AGILITY)
+                rangedDamage[0] + attributes.get(CombatAttribute.AGILITY),
+                rangedDamage[1] + attributes.get(CombatAttribute.AGILITY)
         };
         return Roll.damageRoll(range);
     }
@@ -104,7 +210,7 @@ public class CombatEntity {
         return parry + (0.0015 * attributes.get(CombatAttribute.AGILITY));
     }
     public double getDodge() {
-        return dodge + (0.0015 * attributes.get(CombatAttribute.AGILITY));
+        return dodge + (0.0005 * attributes.get(CombatAttribute.AGILITY));
     }
     public double getPenetration() {
         return penetration + (0.0015 * attributes.get(CombatAttribute.TENACITY));
