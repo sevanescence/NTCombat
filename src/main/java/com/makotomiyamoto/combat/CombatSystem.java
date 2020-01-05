@@ -26,7 +26,7 @@ public final class CombatSystem extends JavaPlugin {
         } catch (NullPointerException e) {
             e.printStackTrace();
         }
-        //noinspection ConstantConditions dw this is an IntelliJ thing
+        //noinspection ConstantConditions (dw this is an IntelliJ thing)
         this.getCommand("ntc").setExecutor(new CombatCommand(this));
         this.getServer().getPluginManager().registerEvents(new PlayerJoinListener(this), this);
     }

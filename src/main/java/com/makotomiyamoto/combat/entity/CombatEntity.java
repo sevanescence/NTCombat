@@ -6,8 +6,10 @@ import com.google.gson.stream.JsonReader;
 import com.makotomiyamoto.combat.CombatSystem;
 import com.makotomiyamoto.combat.data.CombatAttribute;
 import com.makotomiyamoto.combat.roll.Roll;
+import com.sun.istack.internal.Nullable;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -103,6 +105,38 @@ public class CombatEntity {
     }
 
 
+    public static CombatEntity findDefaults(CombatSystem system, Entity entity) {
+        String path = system.getDataFolder().getPath() + File.separator
+                + "mob_data" + File.separator + "default_" + entity.getType().toString() + ".json";
+        File file = new File(path);
+        try {
+            JsonReader reader = new JsonReader(new FileReader(file));
+            Gson gson = new Gson();
+            return gson.fromJson(reader, CombatEntity.class);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            System.err.println("To put it simply, you forgot to set the default for the "
+                    + entity.getType().toString().toLowerCase() + ".");
+            return new CombatEntity();
+        }
+    }
+    public static CombatEntity findMob(CombatSystem system, String name) {
+        name = name.replace(" ", "") + ".json";
+        String path = system.getDataFolder().getPath() + File.separator
+                + "mob_data" + File.separator + name;
+        File file = new File(path);
+        try {
+            JsonReader reader = new JsonReader(new FileReader(file));
+            Gson gson = new Gson();
+            return gson.fromJson(reader, CombatEntity.class);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            System.err.println("To put it simply, your mob doesn't exist.");
+            return new CombatEntity();
+        }
+    }
+
+
 
     public static CombatEntity getPlayer(CombatSystem system, Player player) {
         Gson gson = new Gson();
@@ -114,7 +148,12 @@ public class CombatEntity {
             ItemStack[] armor = player.getInventory().getArmorContents();
             ItemStack mainHand = player.getInventory().getItemInMainHand();
             ItemStack offHand = player.getInventory().getItemInOffHand();
-            return null; // TODO definitely not this lol
+            for (ItemStack item : armor) {
+                combatPlayer.addFromItemStack(item);
+            }
+            combatPlayer.addFromItemStack(mainHand);
+            combatPlayer.addFromItemStack(offHand);
+            return combatPlayer;
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             return new CombatEntity(system, player.getUniqueId().toString(), true);
@@ -139,6 +178,15 @@ public class CombatEntity {
             damage[1] += Integer.parseInt(range[1]);
         }
         // TODO add attributes here (DO NOT CHANGE STATS, THAT IS DONE IN THEIR PUBLIC FETCHERS)
+        for (String line : lore) {
+            if (line.contains(" Strength") || line.contains(" Vitality") || line.contains(" Agility")
+                    || line.contains(" Tenacity") || line.contains(" Intellect") || line.contains(" Spirit")) {
+                String[] split = line.split(" ");
+                int lvl = Integer.parseInt(split[0].replaceAll("§r§[A-z,0-9]", ""));
+                CombatAttribute attribute = CombatAttribute.valueOf(split[1].toUpperCase());
+                attributes.replace(attribute, attributes.get(attribute)+lvl);
+            }
+        }
     }
 
 

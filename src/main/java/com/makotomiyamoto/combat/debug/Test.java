@@ -38,5 +38,28 @@ public class Test {
         for (int i : damage) {
             System.out.println(i);
         }
+        // threading test
+        Thread thread = new Thread(() -> {
+            System.out.println("I'm the first thread!");
+            System.out.println("First thread done!");
+        });
+        Thread thread1 = new Thread(() -> {
+            System.out.println("I'm the second thread!");
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            System.out.println("Thread 2 done!");
+        });
+        thread1.start();
+        thread.start();
+        try {
+            thread1.join();
+            thread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println("done!");
     }
 }
