@@ -3,6 +3,7 @@ package com.makotomiyamoto.combat;
 import com.makotomiyamoto.combat.command.CombatCommand;
 import com.makotomiyamoto.combat.entity.CombatEntity;
 import com.makotomiyamoto.combat.listener.PlayerJoinListener;
+import com.makotomiyamoto.combat.listener.PlayerMobDamageListener;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -29,6 +30,7 @@ public final class CombatSystem extends JavaPlugin {
         //noinspection ConstantConditions (dw this is an IntelliJ thing)
         this.getCommand("ntc").setExecutor(new CombatCommand(this));
         this.getServer().getPluginManager().registerEvents(new PlayerJoinListener(this), this);
+        this.getServer().getPluginManager().registerEvents(new PlayerMobDamageListener(this), this);
     }
 
     public void loadCustomMobs() throws NullPointerException {

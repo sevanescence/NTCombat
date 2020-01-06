@@ -6,7 +6,6 @@ import com.google.gson.stream.JsonReader;
 import com.makotomiyamoto.combat.CombatSystem;
 import com.makotomiyamoto.combat.data.CombatAttribute;
 import com.makotomiyamoto.combat.roll.Roll;
-import com.sun.istack.internal.Nullable;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Entity;
@@ -121,7 +120,9 @@ public class CombatEntity {
         }
     }
     public static CombatEntity findMob(CombatSystem system, String name) {
-        name = name.replace(" ", "") + ".json";
+        name = name
+                .replaceAll("§[A-z,0-9]", "")
+                .replace(" ", "") + ".json";
         String path = system.getDataFolder().getPath() + File.separator
                 + "mob_data" + File.separator + name;
         File file = new File(path);
@@ -141,7 +142,7 @@ public class CombatEntity {
     public static CombatEntity getPlayer(CombatSystem system, Player player) {
         Gson gson = new Gson();
         String s = File.separator;
-        String path = system.getDataFolder() + s + "player_data" + s + player.getUniqueId().toString();
+        String path = system.getDataFolder() + s + "player_data" + s + player.getUniqueId().toString() + ".json";
         File file = new File(path);
         try {
             CombatEntity combatPlayer = gson.fromJson(new JsonReader(new FileReader(file)), CombatEntity.class);
@@ -160,6 +161,9 @@ public class CombatEntity {
         }
     }
     public void addFromItemStack(ItemStack itemStack) {
+        if (itemStack == null) {
+            return;
+        }
         ItemMeta meta = itemStack.getItemMeta();
         if (meta == null) {
             return;
