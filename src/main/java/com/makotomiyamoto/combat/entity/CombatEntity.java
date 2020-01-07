@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.stream.JsonReader;
 import com.makotomiyamoto.combat.CombatSystem;
 import com.makotomiyamoto.combat.data.CombatAttribute;
+import com.makotomiyamoto.combat.data.ItemType;
 import com.makotomiyamoto.combat.roll.Roll;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -150,17 +151,17 @@ public class CombatEntity {
             ItemStack mainHand = player.getInventory().getItemInMainHand();
             ItemStack offHand = player.getInventory().getItemInOffHand();
             for (ItemStack item : armor) {
-                combatPlayer.addFromItemStack(item);
+                combatPlayer.addFromItemStack(item, ItemType.ARMOR);
             }
-            combatPlayer.addFromItemStack(mainHand);
-            combatPlayer.addFromItemStack(offHand);
+            combatPlayer.addFromItemStack(mainHand, ItemType.WEAPON);
+            combatPlayer.addFromItemStack(offHand, ItemType.OFFHAND);
             return combatPlayer;
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             return new CombatEntity(system, player.getUniqueId().toString(), true);
         }
     }
-    public void addFromItemStack(ItemStack itemStack) {
+    public void addFromItemStack(ItemStack itemStack, ItemType itemType) {
         if (itemStack == null) {
             return;
         }
@@ -173,13 +174,31 @@ public class CombatEntity {
             return;
         }
         String mainLine = lore.get(3);
-        if (mainLine.contains("Armor")) {
-            armor += Integer.parseInt(mainLine.replaceAll("[^0-9]", ""));
-        } else {
-            String[] range = mainLine.replaceAll("§r", "")
-                    .replaceAll("[^0-9-]", "").split("-");
-            damage[0] += Integer.parseInt(range[0]);
-            damage[1] += Integer.parseInt(range[1]);
+        String[] range = mainLine.replaceAll("§r", "")
+                .replaceAll("[^0-9-]", "").split("-");
+        switch (itemType) {
+            case WEAPON:
+                switch (itemStack.getType()) {
+                    case BOW:
+                    case CROSSBOW:
+                        this.rangedDamage[0] += Integer.parseInt(range[0]);
+                        this.rangedDamage[1] += Integer.parseInt(range[1]);
+                        break;
+                    default:
+                        this.damage[0] += Integer.parseInt(range[0]);
+                        this.damage[1] += Integer.parseInt(range[1]);
+                        break;
+                }
+                break;
+            case OFFHAND:
+                this.damage[0] += (int)(Integer.parseInt(range[0])*.25);
+                this.damage[1] += (int)(Integer.parseInt(range[1])*.25);
+                break;
+            case ARMOR:
+                this.armor += Integer.parseInt(mainLine.replaceAll("[^0-9]", ""));
+                break;
+            default:
+                System.err.println("how");
         }
         // TODO add attributes here (DO NOT CHANGE STATS, THAT IS DONE IN THEIR PUBLIC FETCHERS)
         for (String line : lore) {

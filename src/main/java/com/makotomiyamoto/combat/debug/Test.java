@@ -15,7 +15,7 @@ public class Test {
         System.out.println("checking list for one percent occurrences...");
         int numberOfOnePercent = 0;
         for (float i : list) {
-            if (i <= .015) {
+            if (i <= .01) {
                 numberOfOnePercent++;
             }
         }

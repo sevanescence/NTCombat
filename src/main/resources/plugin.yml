@@ -1,6 +1,6 @@
 name: NTCombat
 main: com.makotomiyamoto.combat.CombatSystem
-version: '1.0.0'
+version: '1.0.1'
 api-version: '1.14'
 commands:
   ntc:
