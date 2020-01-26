@@ -191,8 +191,18 @@ public class CombatEntity {
                 }
                 break;
             case OFFHAND:
-                this.damage[0] += (int)(Integer.parseInt(range[0])*.25);
-                this.damage[1] += (int)(Integer.parseInt(range[1])*.25);
+                switch (itemStack.getType()) {
+                    case BOW:
+                    case CROSSBOW:
+                        return;
+                    case SHIELD:
+                        this.armor += Integer.parseInt(mainLine.replaceAll("[^0-9]", ""));
+                        break;
+                    default:
+                        this.damage[0] += (int)(Integer.parseInt(range[0])*.25);
+                        this.damage[1] += (int)(Integer.parseInt(range[1])*.25);
+                        break;
+                }
                 break;
             case ARMOR:
                 this.armor += Integer.parseInt(mainLine.replaceAll("[^0-9]", ""));
@@ -200,7 +210,6 @@ public class CombatEntity {
             default:
                 System.err.println("how");
         }
-        // TODO add attributes here (DO NOT CHANGE STATS, THAT IS DONE IN THEIR PUBLIC FETCHERS)
         for (String line : lore) {
             if (line.contains(" Strength") || line.contains(" Vitality") || line.contains(" Agility")
                     || line.contains(" Tenacity") || line.contains(" Intellect") || line.contains(" Spirit")) {
@@ -268,7 +277,7 @@ public class CombatEntity {
     public int getArmor() {
         return armor + attributes.get(CombatAttribute.VITALITY);
     }
-    public double getCritical() {
+    public double getCriticalChance() {
         return critical + (0.0015 * attributes.get(CombatAttribute.TENACITY));
     }
     public double getCriticalDamage() {
@@ -285,5 +294,8 @@ public class CombatEntity {
     }
     public double getPenetration() {
         return penetration + (0.0015 * attributes.get(CombatAttribute.TENACITY));
+    }
+    public int getCombatAttributeLevel(CombatAttribute attribute) {
+        return this.attributes.get(attribute);
     }
 }
