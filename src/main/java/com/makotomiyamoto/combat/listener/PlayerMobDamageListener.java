@@ -35,6 +35,7 @@ public class PlayerMobDamageListener implements Listener {
         }
         System.out.println("PlayerMobDamageEvent fired");
         String mobName = event.getEntity().getCustomName();
+        // TODO add this shit to the actual method.
         CombatEntity target;
         if (mobName == null) {
             target = CombatEntity.findDefaults(system, event.getEntity());
