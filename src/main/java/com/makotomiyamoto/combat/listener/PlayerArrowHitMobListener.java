@@ -27,11 +27,20 @@ public class PlayerArrowHitMobListener implements Listener {
         if (!(event.getDamager() instanceof Arrow) || !(event.getEntity() instanceof LivingEntity)) {
             return;
         }
+        if (event.getEntity() instanceof Player) {
+            return;
+        }
         System.out.println("[]====================[ ARROW HIT MOB EVENT ]====================[]");
         System.out.println(event.getDamager().getMetadata("owner").get(0).value());
         Player player = Bukkit.getPlayer(UUID.fromString((String) event.getDamager().getMetadata("owner").get(0).value()));
         CombatEntity playerInstance = CombatEntity.getPlayer(system, player);
-        CombatEntity target = CombatEntity.findMob(system, event.getEntity().getCustomName());
+        String name = event.getEntity().getCustomName();
+        CombatEntity target;
+        if (name == null) {
+            target = CombatEntity.findDefaults(system, event.getEntity());
+        } else {
+            target = CombatEntity.findMob(system, event.getEntity().getCustomName());
+        }
         System.out.println("PLAYER => " + new Gson().toJson(playerInstance));
         System.out.println("ENTITY => " + new Gson().toJson(target));
         double damage = playerInstance.getRangedDamageRoll();

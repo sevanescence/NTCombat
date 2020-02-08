@@ -3,18 +3,18 @@ package com.makotomiyamoto.combat.data;
 import com.makotomiyamoto.combat.CombatSystem;
 import org.bukkit.metadata.MetadataValue;
 
-public final class ArrowMeta implements MetadataValue {
+public final class ArrowMeta<T> implements MetadataValue {
 
     private CombatSystem system;
-    private String meta;
+    private T meta;
 
-    public ArrowMeta(CombatSystem system, String meta) {
+    public ArrowMeta(CombatSystem system, T meta) {
         this.system = system;
         this.meta = meta;
     }
 
     @Override
-    public String value() {
+    public T value() {
         return meta;
     }
 

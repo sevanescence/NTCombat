@@ -32,7 +32,10 @@ public final class CombatSystem extends JavaPlugin {
         this.getServer().getPluginManager().registerEvents(new PlayerMobDamageListener(this), this);
         this.getServer().getPluginManager().registerEvents(new MobPlayerDamageListener(this), this);
         this.getServer().getPluginManager().registerEvents(new PlayerFireBowListener(this), this);
+        this.getServer().getPluginManager().registerEvents(new EntityFireBowListener(this), this);
         this.getServer().getPluginManager().registerEvents(new PlayerArrowHitMobListener(this), this);
+        this.getServer().getPluginManager().registerEvents(new MobArrowHitPlayerListener(this), this);
+        this.getServer().getPluginManager().registerEvents(new PlayerArrowHitPlayerListener(this), this);
     }
 
     public void loadCustomMobs() throws NullPointerException {
