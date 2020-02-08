@@ -2,6 +2,11 @@
 New repo because intellij decided to screw up the previous repo.
 
 # Changelog
+#### Feb 7th 2020
+- Added a ton of combat listeners.
+
+- Built an ArrowMeta<T> data structure for safely storing custom arrow metadata.
+  
 #### 1.0.1
 Redo of the addFromItemStack() function which handles
 adding player stats from equipped items.
