@@ -6,6 +6,7 @@ import com.makotomiyamoto.combat.entity.CombatEntity;
 import com.makotomiyamoto.combat.roll.Roll;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Arrow;
+import org.bukkit.entity.Firework;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -27,7 +28,7 @@ public final class MobPlayerDamageListener implements Listener {
         if ((event.getDamager() instanceof Player) || !(event.getEntity() instanceof Player)) {
             return;
         }
-        if (event.getDamager() instanceof Arrow) {
+        if (event.getDamager() instanceof Arrow || event.getDamager() instanceof Firework) {
             return;
         }
         if (!(event.getEntity() instanceof LivingEntity)) {

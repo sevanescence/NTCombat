@@ -26,7 +26,12 @@ public class PlayerArrowHitPlayerListener implements Listener {
         if (!(event.getDamager() instanceof Arrow) || !(event.getEntity() instanceof Player)) {
             return;
         }
-        String owner = (String) event.getDamager().getMetadata("owner").get(0).value();
+        String owner;
+        try {
+            owner = (String) event.getDamager().getMetadata("owner").get(0).value();
+        } catch (ClassCastException e) {
+            return;
+        }
         if (owner == null) {
             return;
         }

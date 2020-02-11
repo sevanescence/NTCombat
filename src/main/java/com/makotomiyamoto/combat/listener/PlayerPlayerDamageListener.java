@@ -53,6 +53,7 @@ public class PlayerPlayerDamageListener implements Listener {
             event.getDamager().sendMessage(ChatColor.RED + "Attack parried! 50% less damage dealt.");
             event.getEntity().sendMessage(ChatColor.GREEN + "Attack parried! 50% less damage taken.");
         }
+        event.setDamage(damage);
     }
 
 }
